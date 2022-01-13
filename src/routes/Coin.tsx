@@ -1,5 +1,6 @@
+import { Helmet } from "react-helmet";
 import { useQuery } from "react-query";
-import { Link, useMatch } from "react-router-dom";
+import { Link, useMatch, useNavigate } from "react-router-dom";
 import { Outlet, useLocation, useParams } from "react-router-dom";
 import styled from "styled-components";
 import { fetchCoinInfo, fetchCoinTickers } from "../api";
@@ -11,6 +12,11 @@ const Overview = styled.div`
   background-color: rgba(0, 0, 0, 0.5);
   padding: 10px 20px;
   border-radius: 10px;
+`;
+
+const CoinHeader = styled(Header)`
+  flex-direction: column;
+  height: 15vh;
 `;
 
 const OverviewItem = styled.div`
@@ -35,6 +41,16 @@ const Tabs = styled.div`
   grid-template-columns: repeat(2, 1fr);
   margin: 25px 0px;
   gap: 10px;
+`;
+
+const Button = styled.button`
+  background-color: transparent;
+  border-radius: 15px;
+  color: ${(props) => props.theme.accentColor};
+  transition: color 0.2s ease-in;
+  &:hover {
+    color: ${(props) => props.theme.textColor};
+  }
 `;
 
 const Tab = styled.span<{ isActive: boolean }>`
@@ -85,7 +101,7 @@ interface IInfoData {
   last_data_at: string;
 }
 
-interface IPriceData {
+export interface IPriceData {
   id: string;
   name: string;
   symbol: string;
@@ -122,6 +138,7 @@ interface IPriceData {
 const Coin = () => {
   const { coinId } = useParams() as unknown as RouteParams;
   const { state } = useLocation() as RouteState;
+  const navigate = useNavigate();
   const priceMatch = useMatch("/:coinId/price");
   const chartMatch = useMatch("/:coinId/chart");
 
@@ -131,17 +148,26 @@ const Coin = () => {
   );
   const { isLoading: tickersLoading, data: tickersData } = useQuery<IPriceData>(
     ["tickers", coinId],
-    () => fetchCoinTickers(coinId)
+    () => fetchCoinTickers(coinId),
+    {
+      refetchInterval: 5000,
+    }
   );
   const loading = infoLoading || tickersLoading;
 
   return (
     <Container>
-      <Header>
+      <Helmet>
+        <title>
+          {state?.name ? state.name : loading ? "Loading..." : infoData?.name}
+        </title>
+      </Helmet>
+      <CoinHeader>
         <Title>
           {state?.name ? state.name : loading ? "Loading..." : infoData?.name}
         </Title>
-      </Header>
+        <Button onClick={() => navigate("/")}>Home</Button>
+      </CoinHeader>
       {loading ? (
         <Loader>Loading...</Loader>
       ) : (
@@ -156,8 +182,8 @@ const Coin = () => {
               <span>{infoData?.symbol}</span>
             </OverviewItem>
             <OverviewItem>
-              <span>Open Source:</span>
-              <span>{infoData?.open_source ? "Yes" : "No"}</span>
+              <span>Price: </span>
+              <span>$ {tickersData?.quotes.USD.price.toFixed(3)}</span>
             </OverviewItem>
           </Overview>
           <Description>{infoData?.description}</Description>
@@ -179,7 +205,7 @@ const Coin = () => {
               <Link to="price">Price</Link>
             </Tab>
           </Tabs>
-          <Outlet />
+          <Outlet context={{ coinId }} />
         </>
       )}
     </Container>
