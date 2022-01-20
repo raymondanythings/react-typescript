@@ -1,10 +1,10 @@
-import { Helmet } from "react-helmet";
+import { Helmet, HelmetProvider } from "react-helmet-async";
 import { useQuery } from "react-query";
 import { Link, useMatch, useNavigate } from "react-router-dom";
 import { Outlet, useLocation, useParams } from "react-router-dom";
 import styled from "styled-components";
 import { fetchCoinInfo, fetchCoinTickers } from "../api";
-import { Container, Header, Title, Loader } from "./Coins";
+import { Container, Header, Title, Loader, Img } from "./Coins";
 
 const Overview = styled.div`
   display: flex;
@@ -14,10 +14,7 @@ const Overview = styled.div`
   border-radius: 10px;
 `;
 
-const CoinHeader = styled(Header)`
-  flex-direction: column;
-  height: 15vh;
-`;
+const CoinHeader = styled(Header)``;
 
 const OverviewItem = styled.div`
   display: flex;
@@ -45,7 +42,6 @@ const Tabs = styled.div`
 
 const Button = styled.button`
   background-color: transparent;
-  border-radius: 15px;
   color: ${(props) => props.theme.accentColor};
   transition: color 0.2s ease-in;
   &:hover {
@@ -65,6 +61,19 @@ const Tab = styled.span<{ isActive: boolean }>`
     props.isActive ? props.theme.accentColor : props.theme.textColor};
   a {
     display: block;
+  }
+`;
+
+const HomeWrapper = styled.div`
+  display: flex;
+  padding: 15px 0;
+  & button {
+    padding: 10px;
+    transition: all 0.3s ease-in-out;
+    border-radius: 30px;
+    background-color: ${(props) => props.theme.bgColor};
+    border: 1px solid ${(props) => props.theme.textColor};
+    margin: 0 auto;
   }
 `;
 
@@ -146,6 +155,7 @@ const Coin = () => {
     ["info", coinId],
     () => fetchCoinInfo(coinId)
   );
+
   const { isLoading: tickersLoading, data: tickersData } = useQuery<IPriceData>(
     ["tickers", coinId],
     () => fetchCoinTickers(coinId),
@@ -157,17 +167,25 @@ const Coin = () => {
 
   return (
     <Container>
-      <Helmet>
-        <title>
-          {state?.name ? state.name : loading ? "Loading..." : infoData?.name}
-        </title>
-      </Helmet>
+      <HelmetProvider>
+        <Helmet>
+          <title>
+            {state?.name ? state.name : loading ? "Loading..." : infoData?.name}
+          </title>
+        </Helmet>
+      </HelmetProvider>
       <CoinHeader>
+        <Img
+          src={`https://cryptoicon-api.vercel.app/api/icon/${tickersData?.symbol.toLowerCase()}`}
+        />
         <Title>
           {state?.name ? state.name : loading ? "Loading..." : infoData?.name}
         </Title>
-        <Button onClick={() => navigate("/")}>Home</Button>
       </CoinHeader>
+      <HomeWrapper>
+        <Button onClick={() => navigate("/")}>Home</Button>
+      </HomeWrapper>
+
       {loading ? (
         <Loader>Loading...</Loader>
       ) : (

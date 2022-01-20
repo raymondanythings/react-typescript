@@ -1,9 +1,11 @@
-import { createGlobalStyle } from "styled-components";
+import { createGlobalStyle, ThemeProvider } from "styled-components";
 import Router from "./routes/Router";
 import { ReactQueryDevtools } from "react-query/devtools";
+import { lightTheme, darkTheme } from "./theme";
+import { useRecoilValue } from "recoil";
+import { isDarkAtom } from "./atom";
 
 const GlobalStyle = createGlobalStyle`
-@import url('https://fonts.googleapis.com/css2?family=Source+Sans+Pro:wght@300;400&display=swap');
 font-family: 'Source Sans Pro', sans-serif;
 html, body, div, span, applet, object, iframe,
 h1, h2, h3, h4, h5, h6, p, blockquote, pre,
@@ -43,6 +45,10 @@ menu, ol, ul {
 blockquote, q {
   quotes: none;
 }
+button{
+  border : none;
+  padding : 0;
+}
 blockquote:before, blockquote:after,
 q:before, q:after {
   content: '';
@@ -56,7 +62,7 @@ table {
   box-sizing: border-box;
 }
 body{
-  font-weight: 300;
+  font-weight: 400;
   font-family: "Source Sans Pro", sans-serif;
   background-color: ${(props) => props.theme.bgColor};
   color : ${(props) => props.theme.textColor};
@@ -69,11 +75,14 @@ a{
 `;
 
 function App() {
+  const isDark = useRecoilValue(isDarkAtom);
   return (
     <>
-      <GlobalStyle />
-      <Router />
-      <ReactQueryDevtools initialIsOpen={true} />
+      <ThemeProvider theme={isDark ? darkTheme : lightTheme}>
+        <GlobalStyle />
+        <Router />
+        <ReactQueryDevtools initialIsOpen={true} />
+      </ThemeProvider>
     </>
   );
 }

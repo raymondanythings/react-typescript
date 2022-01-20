@@ -9,7 +9,7 @@ function Price() {
   const { isLoading, data } = useQuery<IPriceData>(["tickers", coinId], () =>
     fetchCoinTickers(coinId)
   );
-  console.log(data);
+
   return (
     <div>
       {isLoading ? (
